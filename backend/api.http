@@ -1,0 +1,30 @@
+### Crear un nuevo movimiento
+POST http://127.0.0.1:3000/api/movimientos
+Content-Type: application/json
+
+{
+  "fecha": "2024-05-20",
+  "descripcion": "Compra de prueba1",
+  "debito": 150.00,
+  "credito": 0,
+  "saldo": 150.00
+}
+
+### Obtener todos los movimientos
+GET http://127.0.0.1:3000/api/movimientos
+
+### Obtener movimiento por ID
+GET http://127.0.0.1:3000/api/movimientos/693736e0f5f7cc107259a62c
+
+### Actualizar movimiento
+PUT http://127.0.0.1:3000/api/movimientos/693736e0f5f7cc107259a62c
+Content-Type: application/json
+
+{
+  "descripcion": "Compra de prueba actualizada",
+  "debito": 200.00,
+  "saldo": 200.00
+}
+
+### Eliminar movimiento
+DELETE http://127.0.0.1:3000/api/movimientos/693736e0f5f7cc107259a62c

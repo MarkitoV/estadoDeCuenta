@@ -10,3 +10,9 @@ dist/
 # System files
 .DS_Store
 Thumbs.db
+
+# Database
+backend/data/
+
+# Logs
+*.log
