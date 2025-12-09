@@ -13,7 +13,20 @@ const MovimientoSchema: Schema = new Schema({
   descripcion: { type: String, required: true },
   debito: { type: Number, default: 0 },
   credito: { type: Number, default: 0 },
-  saldo: { type: Number, required: true },
+  saldo: { type: Number },
+});
+
+MovimientoSchema.pre<IMovimiento>('save', async function () {
+  if (this.isNew) {
+    // Sort by date DESC and then by _id DESC to ensure we get the absolute latest created movement
+    // even if multiple movements have the exact same timestamp.
+    const ultimoMovimiento = await mongoose.model<IMovimiento>('Movimiento')
+      .findOne()
+      .sort({ fecha: -1, _id: -1 });
+
+    const saldoAnterior = ultimoMovimiento ? ultimoMovimiento.saldo : 0;
+    this.saldo = saldoAnterior + this.credito - this.debito;
+  }
 });
 
 export default mongoose.model<IMovimiento>('Movimiento', MovimientoSchema);

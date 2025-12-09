@@ -4,10 +4,9 @@ Content-Type: application/json
 
 {
   "fecha": "2024-05-20",
-  "descripcion": "Compra de prueba1",
-  "debito": 150.00,
-  "credito": 0,
-  "saldo": 150.00
+  "descripcion": "Compra de prueba auto-saldo",
+  "debito": 10,
+  "credito": 0
 }
 
 ### Obtener todos los movimientos
