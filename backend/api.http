@@ -5,7 +5,7 @@ Content-Type: application/json
 {
   "fecha": "2024-05-20",
   "descripcion": "Compra de prueba auto-saldo",
-  "debito": 10,
+  "debito": 50,
   "credito": 0
 }
 
