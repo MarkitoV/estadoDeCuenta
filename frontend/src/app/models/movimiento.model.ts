@@ -2,8 +2,8 @@ export interface Movimiento {
   _id?: string;
   fecha: Date;
   descripcion: string;
-  monto: number;
-  tipo: 'ingreso' | 'egreso';
+  debito: number;
+  credito: number;
   saldo?: number;
   createdAt?: Date;
   updatedAt?: Date;

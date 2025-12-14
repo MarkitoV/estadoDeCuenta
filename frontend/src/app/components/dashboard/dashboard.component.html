@@ -1,51 +1,4 @@
 <div class="container">
-  <!-- Summary Cards -->
-  <div class="summary-grid">
-    <div class="stat-card card fade-in" style="animation-delay: 0.1s;">
-      <div class="stat-icon ingreso-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="19" x2="12" y2="5"></line>
-          <polyline points="5 12 12 5 19 12"></polyline>
-        </svg>
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">Total Ingresos</p>
-        <p class="stat-value ingreso-text">{{ formatCurrency(totalIngresos) }}</p>
-      </div>
-    </div>
-
-    <div class="stat-card card fade-in" style="animation-delay: 0.2s;">
-      <div class="stat-icon egreso-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <polyline points="19 12 12 19 5 12"></polyline>
-        </svg>
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">Total Egresos</p>
-        <p class="stat-value egreso-text">{{ formatCurrency(totalEgresos) }}</p>
-      </div>
-    </div>
-
-    <div class="stat-card card fade-in" style="animation-delay: 0.3s;">
-      <div class="stat-icon saldo-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"></line>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">Saldo Actual</p>
-        <p class="stat-value saldo-text" [class.negative]="saldoActual < 0">
-          {{ formatCurrency(saldoActual) }}
-        </p>
-      </div>
-    </div>
-  </div>
-
   <!-- Movimientos Table -->
   <div class="table-container card fade-in" style="animation-delay: 0.4s;">
     <div class="table-header">
@@ -85,8 +38,8 @@
           <tr>
             <th>Fecha</th>
             <th>Descripción</th>
-            <th>Tipo</th>
-            <th class="text-right">Monto</th>
+            <th class="text-right">Débito</th>
+            <th class="text-right">Crédito</th>
             <th class="text-right">Saldo</th>
             <th class="text-center">Acciones</th>
           </tr>
@@ -97,15 +50,11 @@
             <td>
               <div class="descripcion">{{ movimiento.descripcion }}</div>
             </td>
-            <td>
-              <span class="badge" [class.badge-ingreso]="movimiento.tipo === 'ingreso'"
-                [class.badge-egreso]="movimiento.tipo === 'egreso'">
-                {{ movimiento.tipo }}
-              </span>
+            <td class="text-right egreso-text">
+              {{ movimiento.debito > 0 ? formatCurrency(movimiento.debito) : '-' }}
             </td>
-            <td class="text-right" [class.ingreso-text]="movimiento.tipo === 'ingreso'"
-              [class.egreso-text]="movimiento.tipo === 'egreso'">
-              {{ formatCurrency(movimiento.monto) }}
+            <td class="text-right ingreso-text">
+              {{ movimiento.credito > 0 ? formatCurrency(movimiento.credito) : '-' }}
             </td>
             <td class="text-right saldo-cell">
               {{ movimiento.saldo ? formatCurrency(movimiento.saldo) : '-' }}
@@ -119,7 +68,7 @@
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
                 </button>
-                <button class="btn-icon btn-danger" title="Eliminar">
+                <button class="btn-icon btn-danger" title="Eliminar" (click)="deleteMovimiento(movimiento._id!)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -142,6 +91,22 @@
         <p>No hay movimientos registrados</p>
         <button class="btn btn-primary">Crear primer movimiento</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmar Eliminación</h3>
+    </div>
+    <div class="modal-body">
+      <p>¿Estás seguro de que deseas eliminar este movimiento? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+      <button class="btn btn-danger" (click)="confirmDelete()">Eliminar</button>
     </div>
   </div>
 </div>

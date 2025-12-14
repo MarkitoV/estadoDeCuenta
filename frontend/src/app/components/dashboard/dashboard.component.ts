@@ -15,10 +15,7 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error: string | null = null;
 
-  // Summary statistics
-  totalIngresos = 0;
-  totalEgresos = 0;
-  saldoActual = 0;
+
 
   constructor(private movimientoService: MovimientoService) { }
 
@@ -30,12 +27,11 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.movimientoService.getMovimientos().subscribe({
+    this.movimientoService.movimientos$.subscribe({
       next: (data) => {
         this.movimientos = data.sort((a, b) =>
           new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
         );
-        this.calculateSummary();
         this.loading = false;
       },
       error: (err) => {
@@ -46,17 +42,39 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  calculateSummary(): void {
-    this.totalIngresos = this.movimientos
-      .filter(m => m.tipo === 'ingreso')
-      .reduce((sum, m) => sum + m.monto, 0);
+  showDeleteModal = false;
+  itemToDelete: string | null = null;
 
-    this.totalEgresos = this.movimientos
-      .filter(m => m.tipo === 'egreso')
-      .reduce((sum, m) => sum + m.monto, 0);
-
-    this.saldoActual = this.totalIngresos - this.totalEgresos;
+  deleteMovimiento(id: string): void {
+    this.itemToDelete = id;
+    this.showDeleteModal = true;
   }
+
+  confirmDelete(): void {
+    if (this.itemToDelete) {
+      this.movimientoService.deleteMovimiento(this.itemToDelete).subscribe({
+        next: () => {
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error('Error deleting movimiento:', err);
+          alert('Error al eliminar el movimiento');
+          this.closeModal();
+        }
+      });
+    }
+  }
+
+  cancelDelete(): void {
+    this.closeModal();
+  }
+
+  private closeModal(): void {
+    this.showDeleteModal = false;
+    this.itemToDelete = null;
+  }
+
+
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-AR', {
