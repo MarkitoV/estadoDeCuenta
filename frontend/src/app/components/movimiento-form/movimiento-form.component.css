@@ -1,0 +1,55 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 10px;
+  min-width: 400px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* Custom styling to match dashboard theme */
+:host {
+  display: block;
+}
+
+h2[mat-dialog-title] {
+  color: #f1f5f9;
+  /* var(--text-primary) */
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 20px;
+}
+
+mat-dialog-content {
+  overflow: visible !important;
+  /* Prevent scrollbars if not needed */
+}
+
+/* Ensure inputs are visible on dark background if theme doesn't catch it all */
+::ng-deep .mat-mdc-form-field-input-control {
+  color: #f1f5f9 !important;
+}
+
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+  background-color: #1e293b !important;
+  /* var(--bg-secondary) */
+  color: #f1f5f9 !important;
+}
+
+/* Button spacing */
+mat-dialog-actions {
+  padding-bottom: 20px !important;
+  padding-right: 24px !important;
+  gap: 8px;
+}

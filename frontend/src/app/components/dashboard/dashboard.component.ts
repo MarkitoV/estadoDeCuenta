@@ -7,6 +7,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MovimientoFormComponent } from '../movimiento-form/movimiento-form.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,7 +19,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -30,7 +34,10 @@ export class DashboardComponent implements OnInit {
 
 
 
-  constructor(private movimientoService: MovimientoService) { }
+  constructor(
+    private movimientoService: MovimientoService,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
     this.loadMovimientos();
@@ -51,6 +58,19 @@ export class DashboardComponent implements OnInit {
         console.error('Error loading movimientos:', err);
         this.error = 'Error al cargar los movimientos. Por favor, verifica que el servidor esté corriendo.';
         this.loading = false;
+      }
+    });
+  }
+
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(MovimientoFormComponent, {
+      width: '500px',
+      data: null // No data for create mode
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMovimientos(); // Refresh list if a movement was created
       }
     });
   }
