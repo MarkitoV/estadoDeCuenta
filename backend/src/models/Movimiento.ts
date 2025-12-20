@@ -6,6 +6,8 @@ export interface IMovimiento extends Document {
   debito: number;
   credito: number;
   saldo: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const MovimientoSchema: Schema = new Schema({
@@ -14,7 +16,7 @@ const MovimientoSchema: Schema = new Schema({
   debito: { type: Number, default: 0 },
   credito: { type: Number, default: 0 },
   saldo: { type: Number },
-});
+}, { timestamps: true });
 
 MovimientoSchema.pre<IMovimiento>('save', async function () {
   if (this.isNew) {

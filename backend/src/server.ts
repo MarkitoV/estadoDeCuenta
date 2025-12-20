@@ -6,7 +6,7 @@ import morgan from 'morgan';
 
 import movimientoRoutes from './routes/movimientoRoutes';
 
-dotenv.config();
+dotenv.config({ quiet: true } as any);
 
 const app = express();
 const PORT = 3000;

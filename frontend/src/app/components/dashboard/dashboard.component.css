@@ -4,6 +4,12 @@
   margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+}
+
 .dashboard-card {
   background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(10px);
@@ -31,7 +37,8 @@ mat-card-title {
 }
 
 .table-container {
-  overflow: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {

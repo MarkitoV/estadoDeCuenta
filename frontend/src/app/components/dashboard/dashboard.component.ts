@@ -49,9 +49,11 @@ export class DashboardComponent implements OnInit {
 
     this.movimientoService.movimientos$.subscribe({
       next: (data) => {
-        this.movimientos = data.sort((a, b) =>
-          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-        );
+        this.movimientos = data.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
         this.loading = false;
       },
       error: (err) => {

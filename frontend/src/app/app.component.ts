@@ -127,6 +127,39 @@ import { Movimiento } from './models/movimiento.model';
     .egreso-text { color: #ef4444; }
     .saldo-text { color: #3b82f6; }
     .saldo-text.negative { color: #ef4444; }
+
+    @media (max-width: 768px) {
+      .header-summary {
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+      }
+
+      .summary-spacer {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        justify-content: center;
+      }
+
+      .app-title {
+        font-size: 1.5rem;
+      }
+
+      .summary-item {
+        width: auto;
+        padding-right: 0;
+        align-items: center;
+        flex: 1;
+      }
+
+      .summary-value {
+        font-size: 1.1rem;
+      }
+      
+      .summary-spacer-end {
+        display: none;
+      }
+    }
   `]
 })
 export class AppComponent implements OnInit {

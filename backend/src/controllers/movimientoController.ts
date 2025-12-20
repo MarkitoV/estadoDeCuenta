@@ -13,7 +13,7 @@ export const createMovimiento = async (req: Request, res: Response) => {
 
 export const getMovimientos = async (req: Request, res: Response) => {
   try {
-    const movimientos = await Movimiento.find();
+    const movimientos = await Movimiento.find().sort({ createdAt: -1 });
     res.status(200).json(movimientos);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener los movimientos', error });
