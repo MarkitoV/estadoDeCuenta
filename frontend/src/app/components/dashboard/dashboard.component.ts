@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MovimientoService } from '../../services/movimiento.service';
 import { Movimiento } from '../../models/movimiento.model';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MovimientoFormComponent } from '../movimiento-form/movimiento-form.component';
 
 @Component({
@@ -21,18 +22,19 @@ import { MovimientoFormComponent } from '../movimiento-form/movimiento-form.comp
     MatIconModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
-  movimientos: Movimiento[] = [];
+export class DashboardComponent implements OnInit, AfterViewInit {
+  movimientos = new MatTableDataSource<Movimiento>([]);
   displayedColumns: string[] = ['fecha', 'descripcion', 'debito', 'credito', 'saldo', 'acciones'];
   loading = true;
   error: string | null = null;
 
-
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private movimientoService: MovimientoService,
@@ -43,17 +45,23 @@ export class DashboardComponent implements OnInit {
     this.loadMovimientos();
   }
 
+  ngAfterViewInit() {
+    this.movimientos.paginator = this.paginator;
+  }
+
   loadMovimientos(): void {
     this.loading = true;
     this.error = null;
 
     this.movimientoService.movimientos$.subscribe({
       next: (data) => {
-        this.movimientos = data.sort((a, b) => {
+        const sortedData = data.sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           return dateB - dateA;
         });
+        this.movimientos.data = sortedData;
+        this.movimientos.paginator = this.paginator; // Re-assign paginator after data load
         this.loading = false;
       },
       error: (err) => {
@@ -73,6 +81,19 @@ export class DashboardComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadMovimientos(); // Refresh list if a movement was created
+      }
+    });
+  }
+
+  editMovimiento(movimiento: Movimiento): void {
+    const dialogRef = this.dialog.open(MovimientoFormComponent, {
+      width: '500px',
+      data: movimiento
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMovimientos(); // Refresh list if a movement was updated
       }
     });
   }

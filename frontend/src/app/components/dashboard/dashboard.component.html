@@ -67,7 +67,7 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef class="text-center"> Acciones </th>
             <td mat-cell *matCellDef="let element" class="text-center">
-              <button mat-icon-button color="primary" title="Editar">
+              <button mat-icon-button color="primary" title="Editar" (click)="editMovimiento(element)">
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button color="warn" title="Eliminar" (click)="deleteMovimiento(element._id!)">
@@ -90,6 +90,9 @@
             </td>
           </tr>
         </table>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+          aria-label="Select page of periodic elements">
+        </mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>
