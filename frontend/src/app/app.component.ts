@@ -16,6 +16,7 @@ import { Movimiento } from './models/movimiento.model';
             <div class="summary-spacer">
               <h1 class="app-title">
                 <span class="gradient-text">Estado de Cuenta</span>
+                <span class="subtitle">(Cuenta en Bolivianos)</span>
               </h1>
             </div>
             
@@ -65,6 +66,15 @@ import { Movimiento } from './models/movimiento.model';
       font-size: 1.875rem;
       font-weight: 700;
       margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #94a3b8;
+      font-weight: 400;
     }
 
     .gradient-text {
@@ -143,6 +153,13 @@ import { Movimiento } from './models/movimiento.model';
 
       .app-title {
         font-size: 1.5rem;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .subtitle {
+        font-size: 0.875rem;
       }
 
       .summary-item {
@@ -192,8 +209,9 @@ export class AppComponent implements OnInit {
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   }
 }

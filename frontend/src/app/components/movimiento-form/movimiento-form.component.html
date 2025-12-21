@@ -15,7 +15,7 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Descripción</mat-label>
       <input type="text" matInput formControlName="descripcion" [matAutocomplete]="auto">
-      <mat-autocomplete #auto="matAutocomplete">
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
           {{ option }}
         </mat-option>
@@ -28,14 +28,12 @@
     <div class="row">
       <mat-form-field appearance="outline" class="half-width">
         <mat-label>Débito</mat-label>
-        <input matInput type="number" formControlName="debito" min="0">
-        <span matTextPrefix>$&nbsp;</span>
+        <input matInput type="number" formControlName="debito" min="0" #debitoInput>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="half-width">
         <mat-label>Crédito</mat-label>
-        <input matInput type="number" formControlName="credito" min="0">
-        <span matTextPrefix>$&nbsp;</span>
+        <input matInput type="number" formControlName="credito" min="0" #creditoInput>
       </mat-form-field>
     </div>
 

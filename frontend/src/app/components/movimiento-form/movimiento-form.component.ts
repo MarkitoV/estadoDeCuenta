@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MovimientoService } from '../../services/movimiento.service';
@@ -36,6 +36,9 @@ export class MovimientoFormComponent implements OnInit {
   form: FormGroup;
   loading = false;
   filteredOptions!: Observable<string[]>;
+
+  @ViewChild('debitoInput') debitoInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('creditoInput') creditoInput!: ElementRef<HTMLInputElement>;
 
   descripcionOptions: string[] = [
     'Abono de otro banco QR',
@@ -81,6 +84,31 @@ export class MovimientoFormComponent implements OnInit {
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
     return this.descripcionOptions.filter(option => option.toLowerCase().includes(filterValue));
+  }
+
+  onOptionSelected(event: MatAutocompleteSelectedEvent): void {
+    const selectedValue = event.option.value;
+    const creditOptions = [
+      'Abono de otro banco QR',
+      'Depósito Efectivo ATM Bisa',
+      'Pago de Interes'
+    ];
+
+    // Note: TRF:GASTOS DE VIVIENDA is usually a debit, but the user mentioned it in the list for Credit focus.
+    // I will follow the user's specific list.
+    const focusOnCredit = creditOptions.includes(selectedValue) || selectedValue === 'TRF:GASTOS DE VIVIENDA';
+
+    if (selectedValue === 'TRF:GASTOS DE VIVIENDA') {
+      this.form.get('credito')?.setValue(200);
+    }
+
+    setTimeout(() => {
+      if (focusOnCredit) {
+        this.creditoInput.nativeElement.focus();
+      } else {
+        this.debitoInput.nativeElement.focus();
+      }
+    }, 0);
   }
 
   private setupMutualExclusivity(): void {
