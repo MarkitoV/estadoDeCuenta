@@ -65,7 +65,7 @@ export class MovimientoFormComponent implements OnInit {
     if (this.data) {
       this.form.patchValue({
         fecha: this.data.fecha,
-        descripcion: this.data.descripcion,
+        descripcion: this.data.descripcion || '',
         debito: this.data.debito,
         credito: this.data.credito
       });

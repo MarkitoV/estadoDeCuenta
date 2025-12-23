@@ -73,9 +73,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   openCreateDialog(): void {
+    // Find the most recent movement by createdAt to get its date
+    const lastMovimiento = this.movimientos.data.reduce((prev, current) => {
+      const prevDate = prev.createdAt ? new Date(prev.createdAt).getTime() : 0;
+      const currentDate = current.createdAt ? new Date(current.createdAt).getTime() : 0;
+      return (currentDate > prevDate) ? current : prev;
+    }, this.movimientos.data[0]);
+
     const dialogRef = this.dialog.open(MovimientoFormComponent, {
       width: '500px',
-      data: null // No data for create mode
+      data: lastMovimiento ? { fecha: lastMovimiento.fecha } : null
     });
 
     dialogRef.afterClosed().subscribe(result => {
