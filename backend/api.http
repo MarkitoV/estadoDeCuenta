@@ -27,3 +27,30 @@ Content-Type: application/json
 
 ### Eliminar movimiento
 DELETE http://127.0.0.1:3000/api/movimientos/693736e0f5f7cc107259a62c
+
+### MetaMensual CRUD
+
+### Obtener todas las metas
+GET http://127.0.0.1:3000/api/metas
+
+### Crear una nueva meta
+POST http://127.0.0.1:3000/api/metas
+Content-Type: application/json
+
+{
+  "mes": "2025-03-01",
+  "saldoMinimo": 0,
+  "nAbonos": 0
+}
+
+### Actualizar una meta
+PUT http://127.0.0.1:3000/api/metas/ID_DE_LA_META
+Content-Type: application/json
+
+{
+  "saldoMinimo": 500,
+  "nAbonos": 2
+}
+
+### Eliminar una meta
+DELETE http://127.0.0.1:3000/api/metas/ID_DE_LA_META

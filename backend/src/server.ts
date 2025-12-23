@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 
 import movimientoRoutes from './routes/movimientoRoutes';
+import metaMensualRoutes from './routes/metaMensualRoutes';
 
 dotenv.config({ quiet: true } as any);
 
@@ -18,6 +19,7 @@ app.use(morgan('dev', {
 }));
 app.use(express.json());
 app.use('/api/movimientos', movimientoRoutes);
+app.use('/api/metas', metaMensualRoutes);
 
 const startServer = async () => {
   try {

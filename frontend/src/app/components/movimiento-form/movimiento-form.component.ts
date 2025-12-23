@@ -45,6 +45,7 @@ export class MovimientoFormComponent implements OnInit {
     'Depósito Efectivo ATM Bisa',
     'Impuesto Retenido',
     'Pago de Interes',
+    'Transferencia a otro banco QR',
     'Transferencia de Terceros QR',
     'TRF:GASTOS DE VIVIENDA'
   ];
@@ -91,7 +92,8 @@ export class MovimientoFormComponent implements OnInit {
     const creditOptions = [
       'Abono de otro banco QR',
       'Depósito Efectivo ATM Bisa',
-      'Pago de Interes'
+      'Pago de Interes',
+      'Transferencia de Terceros QR'
     ];
 
     // Note: TRF:GASTOS DE VIVIENDA is usually a debit, but the user mentioned it in the list for Credit focus.

@@ -23,76 +23,112 @@
         <button mat-raised-button color="primary" (click)="loadMovimientos()">Reintentar</button>
       </div>
 
-      <!-- Table -->
-      <div *ngIf="!loading && !error" class="table-container">
-        <table mat-table [dataSource]="movimientos" class="mat-elevation-z0">
+      <!-- Dashboard Grid -->
+      <div *ngIf="!loading && !error" class="dashboard-grid">
+        <!-- Movements Table -->
+        <div class="table-container movements-section">
+          <table mat-table [dataSource]="movimientos" class="mat-elevation-z0">
+            <!-- Fecha Column -->
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef> Fecha </th>
+              <td mat-cell *matCellDef="let element"> {{ formatDate(element.fecha) }} </td>
+            </ng-container>
 
-          <!-- Fecha Column -->
-          <ng-container matColumnDef="fecha">
-            <th mat-header-cell *matHeaderCellDef> Fecha </th>
-            <td mat-cell *matCellDef="let element"> {{ formatDate(element.fecha) }} </td>
-          </ng-container>
+            <!-- Descripción Column -->
+            <ng-container matColumnDef="descripcion">
+              <th mat-header-cell *matHeaderCellDef> Descripción </th>
+              <td mat-cell *matCellDef="let element"> {{ element.descripcion }} </td>
+            </ng-container>
 
-          <!-- Descripción Column -->
-          <ng-container matColumnDef="descripcion">
-            <th mat-header-cell *matHeaderCellDef> Descripción </th>
-            <td mat-cell *matCellDef="let element"> {{ element.descripcion }} </td>
-          </ng-container>
+            <!-- Débito Column -->
+            <ng-container matColumnDef="debito">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Débito </th>
+              <td mat-cell *matCellDef="let element" class="text-right egreso-text">
+                {{ element.debito > 0 ? formatCurrency(element.debito) : '-' }}
+              </td>
+            </ng-container>
 
-          <!-- Débito Column -->
-          <ng-container matColumnDef="debito">
-            <th mat-header-cell *matHeaderCellDef class="text-right"> Débito </th>
-            <td mat-cell *matCellDef="let element" class="text-right egreso-text">
-              {{ element.debito > 0 ? formatCurrency(element.debito) : '-' }}
-            </td>
-          </ng-container>
+            <!-- Crédito Column -->
+            <ng-container matColumnDef="credito">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Crédito </th>
+              <td mat-cell *matCellDef="let element" class="text-right ingreso-text">
+                {{ element.credito > 0 ? formatCurrency(element.credito) : '-' }}
+              </td>
+            </ng-container>
 
-          <!-- Crédito Column -->
-          <ng-container matColumnDef="credito">
-            <th mat-header-cell *matHeaderCellDef class="text-right"> Crédito </th>
-            <td mat-cell *matCellDef="let element" class="text-right ingreso-text">
-              {{ element.credito > 0 ? formatCurrency(element.credito) : '-' }}
-            </td>
-          </ng-container>
+            <!-- Saldo Column -->
+            <ng-container matColumnDef="saldo">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Saldo </th>
+              <td mat-cell *matCellDef="let element" class="text-right saldo-text">
+                {{ element.saldo ? formatCurrency(element.saldo) : '-' }}
+              </td>
+            </ng-container>
 
-          <!-- Saldo Column -->
-          <ng-container matColumnDef="saldo">
-            <th mat-header-cell *matHeaderCellDef class="text-right"> Saldo </th>
-            <td mat-cell *matCellDef="let element" class="text-right saldo-text">
-              {{ element.saldo ? formatCurrency(element.saldo) : '-' }}
-            </td>
-          </ng-container>
+            <!-- Acciones Column -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="text-center"> Acciones </th>
+              <td mat-cell *matCellDef="let element" class="text-center">
+                <button mat-icon-button color="primary" title="Editar" (click)="editMovimiento(element)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" title="Eliminar" (click)="deleteMovimiento(element._id!)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
 
-          <!-- Acciones Column -->
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef class="text-center"> Acciones </th>
-            <td mat-cell *matCellDef="let element" class="text-center">
-              <button mat-icon-button color="primary" title="Editar" (click)="editMovimiento(element)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" title="Eliminar" (click)="deleteMovimiento(element._id!)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <!-- Empty State Row -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" colspan="6">
+                <div class="empty-state">
+                  <mat-icon class="large-icon">receipt_long</mat-icon>
+                  <p>No hay movimientos registrados</p>
+                  <button mat-raised-button color="primary" (click)="openCreateDialog()">Crear primer
+                    movimiento</button>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+            aria-label="Select page of periodic elements">
+          </mat-paginator>
+        </div>
 
-          <!-- Empty State Row -->
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="6">
-              <div class="empty-state">
-                <mat-icon class="large-icon">receipt_long</mat-icon>
-                <p>No hay movimientos registrados</p>
-                <button mat-raised-button color="primary" (click)="openCreateDialog()">Crear primer movimiento</button>
-              </div>
-            </td>
-          </tr>
-        </table>
-        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
-          aria-label="Select page of periodic elements">
-        </mat-paginator>
+        <!-- Metas Table -->
+        <div class="table-container metas-section">
+          <h3 class="section-title">Metas de Ahorro</h3>
+          <table mat-table [dataSource]="metas" class="mat-elevation-z0">
+            <!-- Mes Column -->
+            <ng-container matColumnDef="mes">
+              <th mat-header-cell *matHeaderCellDef> Mes </th>
+              <td mat-cell *matCellDef="let element" class="mes-cell"> {{ element.mes }} </td>
+            </ng-container>
+
+            <!-- Saldo Mínimo Column -->
+            <ng-container matColumnDef="saldoMinimo">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Saldo Mínimo </th>
+              <td mat-cell *matCellDef="let element" class="text-right">
+                {{ element.saldoMinimo > 0 ? 'Bs ' + formatCurrency(element.saldoMinimo) : '-' }}
+              </td>
+            </ng-container>
+
+            <!-- Num. Movimientos Column -->
+            <ng-container matColumnDef="numMovimientos">
+              <th mat-header-cell *matHeaderCellDef class="text-center"> Movimientos </th>
+              <td mat-cell *matCellDef="let element" class="text-center">
+                <span class="badge" [class.badge-success]="element.numMovimientos > 0">
+                  {{ element.numMovimientos }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="metasColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: metasColumns;"></tr>
+          </table>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
