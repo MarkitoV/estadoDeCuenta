@@ -23,6 +23,52 @@
         <button mat-raised-button color="primary" (click)="loadMovimientos()">Reintentar</button>
       </div>
 
+      <!-- Visualization Panel -->
+      <div *ngIf="!loading && !error" class="visualization-panel fade-in">
+        <div class="panel-header">
+          <h3 class="section-title">Visualización de Metas</h3>
+          <mat-button-toggle-group [value]="activeChart" appearance="standard" class="chart-toggle">
+            <mat-button-toggle value="comparativa" (click)="toggleChart('comparativa')">
+              <mat-icon>area_chart</mat-icon>
+              Comparativa
+            </mat-button-toggle>
+            <mat-button-toggle value="actividad" (click)="toggleChart('actividad')">
+              <mat-icon>bar_chart</mat-icon>
+              Actividad
+            </mat-button-toggle>
+            <mat-button-toggle value="rendimiento" (click)="toggleChart('rendimiento')">
+              <mat-icon>pie_chart</mat-icon>
+              Ingresos/Egresos
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
+        <div class="chart-container" *ngIf="activeChart" [ngSwitch]="activeChart">
+          <div *ngSwitchCase="'comparativa'" class="chart-wrapper">
+            <apx-chart [series]="comparativaChart.series!" [chart]="comparativaChart.chart!"
+              [xaxis]="comparativaChart.xaxis!" [stroke]="comparativaChart.stroke!" [colors]="comparativaChart.colors!"
+              [dataLabels]="comparativaChart.dataLabels!" [yaxis]="comparativaChart.yaxis!"
+              [fill]="comparativaChart.fill!" [tooltip]="comparativaChart.tooltip!"></apx-chart>
+          </div>
+          <div *ngSwitchCase="'actividad'" class="chart-wrapper">
+            <apx-chart [series]="actividadChart.series!" [chart]="actividadChart.chart!" [xaxis]="actividadChart.xaxis!"
+              [plotOptions]="actividadChart.plotOptions!" [colors]="actividadChart.colors!"
+              [dataLabels]="actividadChart.dataLabels!" [yaxis]="actividadChart.yaxis!"
+              [tooltip]="actividadChart.tooltip!"></apx-chart>
+          </div>
+          <div *ngSwitchCase="'rendimiento'" class="chart-wrapper pie-wrapper">
+            <apx-chart [series]="rendimientoChart.series!" [chart]="rendimientoChart.chart!"
+              [labels]="rendimientoChart.labels!" [colors]="rendimientoChart.colors!"
+              [legend]="rendimientoChart.legend!" [tooltip]="rendimientoChart.tooltip!"
+              [dataLabels]="rendimientoChart.dataLabels!"></apx-chart>
+            <div class="rendimiento-info">
+              <h4>Balance Total</h4>
+              <p>Comparativa histórica de Ingresos vs Egresos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Dashboard Grid -->
       <div *ngIf="!loading && !error" class="dashboard-grid">
         <!-- Movements Table -->
@@ -92,7 +138,7 @@
               </td>
             </tr>
           </table>
-          <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+          <mat-paginator #movimientosPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
             aria-label="Select page of periodic elements">
           </mat-paginator>
         </div>
@@ -141,6 +187,9 @@
             <tr mat-header-row *matHeaderRowDef="metasColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: metasColumns;"></tr>
           </table>
+          <mat-paginator #metasPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+            aria-label="Select page of periodic elements">
+          </mat-paginator>
         </div>
       </div>
     </mat-card-content>

@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MovimientoService } from '../../services/movimiento.service';
 import { Movimiento } from '../../models/movimiento.model';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -18,8 +19,41 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatPaginator, MatPaginatorModule, MatPaginatorIntl } from '@angular/material/paginator';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MovimientoFormComponent } from '../movimiento-form/movimiento-form.component';
 import { MetaMensualService, MetaMensual } from '../../services/meta-mensual.service';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import {
+  NgApexchartsModule,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexXAxis,
+  ApexDataLabels,
+  ApexStroke,
+  ApexYAxis,
+  ApexTitleSubtitle,
+  ApexLegend,
+  ApexPlotOptions,
+  ApexFill,
+  ApexTooltip
+} from "ng-apexcharts";
+
+export type ChartOptions = {
+  series: ApexAxisChartSeries | any;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  stroke: ApexStroke;
+  dataLabels: ApexDataLabels;
+  yaxis: ApexYAxis;
+  title: ApexTitleSubtitle;
+  labels: string[];
+  legend: ApexLegend;
+  subtitle: ApexTitleSubtitle;
+  plotOptions: ApexPlotOptions;
+  fill: ApexFill;
+  tooltip: ApexTooltip;
+  colors: string[];
+};
 
 @Component({
   selector: 'app-dashboard',
@@ -33,7 +67,11 @@ import { MetaMensualService, MetaMensual } from '../../services/meta-mensual.ser
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatSnackBarModule,
+    NgApexchartsModule,
+    MatButtonToggleModule,
+    FormsModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -48,12 +86,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   loading = true;
   error: string | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('movimientosPaginator') movimientosPaginator!: MatPaginator;
+  @ViewChild('metasPaginator') metasPaginator!: MatPaginator;
+
+  activeChart: 'comparativa' | 'actividad' | 'rendimiento' | null = null;
+
+  public comparativaChart!: Partial<ChartOptions>;
+  public actividadChart!: Partial<ChartOptions>;
+  public rendimientoChart!: Partial<ChartOptions>;
 
   constructor(
     private movimientoService: MovimientoService,
     private metaMensualService: MetaMensualService,
     private dialog: MatDialog,
+    private snackBar: MatSnackBar,
     private _intl: MatPaginatorIntl
   ) {
     this._intl.itemsPerPageLabel = 'Items por página';
@@ -79,7 +125,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.movimientos.paginator = this.paginator;
+    this.movimientos.paginator = this.movimientosPaginator;
+    this.metas.paginator = this.metasPaginator;
   }
 
   loadMovimientos(): void {
@@ -94,7 +141,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           return dateB - dateA;
         });
         this.movimientos.data = sortedData;
-        this.movimientos.paginator = this.paginator; // Re-assign paginator after data load
+        this.movimientos.paginator = this.movimientosPaginator; // Re-assign paginator after data load
 
         this.calculateMetas(data);
 
@@ -118,12 +165,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             return d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
           });
 
+          // Find last movement of the month for saldoMes
+          const lastMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
+            const timePrev = prev.createdAt ? new Date(prev.createdAt).getTime() : new Date(prev.fecha).getTime();
+            const timeCurr = curr.createdAt ? new Date(curr.createdAt).getTime() : new Date(curr.fecha).getTime();
+            return timeCurr > timePrev ? curr : prev;
+          }) : null;
+
           return {
             mes: date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
             mesNum: date.getMonth(),
             anio: date.getFullYear(),
             saldoMinimo: m.saldoMinimo,
-            saldoMes: m.saldoMes || 0,
+            saldoMes: lastMov ? (lastMov.saldo || 0) : 0,
             numMovimientos: monthMovs.length
           };
         }).sort((a, b) => {
@@ -132,6 +186,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           return dateB - dateA;
         });
         this.metas.data = metasData;
+        this.metas.paginator = this.metasPaginator;
+        this.updateCharts();
       },
       error: (err) => {
         console.error('Error fetching metas:', err);
@@ -164,9 +220,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         return d.getMonth() === m.mes && d.getFullYear() === m.anio;
       });
 
-      // Find first movement of the month for fallback
-      const firstMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
-        return new Date(curr.fecha).getTime() < new Date(prev.fecha).getTime() ? curr : prev;
+      // Find last movement of the month for fallback
+      const lastMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
+        const timePrev = prev.createdAt ? new Date(prev.createdAt).getTime() : new Date(prev.fecha).getTime();
+        const timeCurr = curr.createdAt ? new Date(curr.createdAt).getTime() : new Date(curr.fecha).getTime();
+        return timeCurr > timePrev ? curr : prev;
       }) : null;
 
       return {
@@ -174,7 +232,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         mesNum: m.mes,
         anio: m.anio,
         saldoMinimo: m.saldo,
-        saldoMes: firstMov ? (firstMov.saldo || 0) : 0,
+        saldoMes: lastMov ? (lastMov.saldo || 0) : 0,
         numMovimientos: monthMovs.length
       };
     }).sort((a, b) => {
@@ -184,6 +242,132 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
 
     this.metas.data = metasData;
+    this.metas.paginator = this.metasPaginator;
+    this.updateCharts();
+  }
+
+  private updateCharts(): void {
+    const data = [...this.metas.data].reverse(); // Order from oldest to newest for charts
+    const labels = data.map(m => m.mes);
+    const saldoMinimo = data.map(m => m.saldoMinimo);
+    const saldoMes = data.map(m => m.saldoMes);
+    const movimientos = data.map(m => m.numMovimientos);
+
+    // Calculate total income and expenses for the Pie chart
+    const totalIngresos = this.movimientos.data.reduce((acc, m) => acc + (m.credito || 0), 0);
+    const totalEgresos = this.movimientos.data.reduce((acc, m) => acc + (m.debito || 0), 0);
+
+    // 1. Comparativa Chart (Area)
+    this.comparativaChart = {
+      series: [
+        { name: "Saldo Mínimo", data: saldoMinimo },
+        { name: "Saldo Real", data: saldoMes }
+      ],
+      chart: {
+        height: 350,
+        type: "area",
+        toolbar: { show: false },
+        animations: { enabled: true },
+        foreColor: '#94a3b8',
+        theme: 'dark'
+      } as ApexChart,
+      colors: ["#a855f7", "#22c55e"], // Purple and Neon Green
+      dataLabels: { enabled: false },
+      stroke: { curve: "smooth", width: 3 },
+      xaxis: {
+        categories: labels,
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          formatter: (val) => `Bs ${val.toLocaleString()}`
+        }
+      },
+      fill: {
+        type: "gradient",
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.45,
+          opacityTo: 0.05,
+          stops: [20, 100]
+        } as any
+      },
+      tooltip: {
+        theme: 'dark',
+        y: {
+          formatter: (val) => `Bs ${val.toLocaleString()}`
+        }
+      }
+    };
+
+    // 2. Actividad Chart (Column)
+    this.actividadChart = {
+      series: [
+        { name: "Movimientos", data: movimientos }
+      ],
+      chart: {
+        height: 350,
+        type: "bar",
+        toolbar: { show: false },
+        foreColor: '#94a3b8'
+      } as ApexChart,
+      plotOptions: {
+        bar: {
+          columnWidth: "50%",
+          borderRadius: 4
+        }
+      },
+      colors: ["#6366f1"],
+      dataLabels: { enabled: false },
+      xaxis: {
+        categories: labels,
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        title: { text: "Cantidad" }
+      },
+      tooltip: { theme: 'dark' }
+    };
+
+    // 3. Rendimiento Chart (Pie - Ingresos vs Egresos)
+    this.rendimientoChart = {
+      series: [totalIngresos, totalEgresos],
+      chart: {
+        height: 350,
+        type: "pie",
+        foreColor: '#94a3b8',
+        theme: 'dark'
+      } as ApexChart,
+      labels: ["Ingresos", "Egresos"],
+      colors: ["#22c55e", "#ef4444"], // Green for Income, Red for Expenses
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontSize: '14px',
+        markers: { radius: 12 }
+      },
+      tooltip: {
+        y: {
+          formatter: (val) => `Bs ${val.toLocaleString()}`
+        }
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: function (val: any, opts: any) {
+          return opts.w.globals.labels[opts.seriesIndex] + ": " + Math.round(val) + "%"
+        }
+      }
+    };
+  }
+
+  toggleChart(chart: 'comparativa' | 'actividad' | 'rendimiento'): void {
+    if (this.activeChart === chart) {
+      this.activeChart = null;
+    } else {
+      this.activeChart = chart;
+    }
   }
 
   openCreateDialog(): void {
@@ -274,7 +458,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             return new Date(current.fecha).getTime() > new Date(prev.fecha).getTime() ? current : prev;
           }).fecha;
           const endDate = new Date(new Date(lastMovDate).getFullYear(), new Date(lastMovDate).getMonth(), 1);
-
           // 2. Process months from startDate to endDate
           const monthsToProcess: Date[] = [];
           let tempDate = new Date(startDate);
@@ -284,21 +467,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
 
           if (monthsToProcess.length === 0) {
-            console.log('No new months to process');
+            this.snackBar.open('No hay meses nuevos para agregar', 'Cerrar', { duration: 3000 });
             return;
           }
 
           // 3. Sequential creation
-          this.createMetasSequentially(monthsToProcess, currentSaldoMinimo, movimientos);
+          this.createMetasSequentially(monthsToProcess, currentSaldoMinimo, movimientos, monthsToProcess.length);
         });
       },
       error: (err) => console.error('Error fetching existing metas:', err)
     });
   }
 
-  private createMetasSequentially(months: Date[], lastSaldo: number, movimientos: any[]): void {
+  private createMetasSequentially(months: Date[], lastSaldo: number, movimientos: any[], totalToAdd: number, addedCount: number = 0): void {
     if (months.length === 0) {
       this.loadMovimientos();
+      if (addedCount > 0) {
+        this.snackBar.open(`Se agregaron ${addedCount} meses nuevos`, 'Cerrar', { duration: 3000 });
+      }
       return;
     }
 
@@ -323,27 +509,27 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       return d.getMonth() === month && d.getFullYear() === year;
     });
 
-    const firstMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
+    const lastMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
       // Use createdAt for better precision if available, otherwise fecha
       const timePrev = prev.createdAt ? new Date(prev.createdAt).getTime() : new Date(prev.fecha).getTime();
       const timeCurr = curr.createdAt ? new Date(curr.createdAt).getTime() : new Date(curr.fecha).getTime();
-      return timeCurr < timePrev ? curr : prev;
+      return timeCurr > timePrev ? curr : prev;
     }) : null;
 
     const newMeta: MetaMensual = {
       mes: currentMonth,
       saldoMinimo: newSaldo,
-      saldoMes: firstMov ? (firstMov.saldo || 0) : 0,
+      saldoMes: lastMov ? (lastMov.saldo || 0) : 0,
       nAbonos: monthMovs.length
     };
 
     this.metaMensualService.createMeta(newMeta).subscribe({
       next: () => {
-        this.createMetasSequentially(months, newSaldo, movimientos);
+        this.createMetasSequentially(months, newSaldo, movimientos, totalToAdd, addedCount + 1);
       },
       error: (err) => {
         console.error('Error creating meta:', err);
-        this.createMetasSequentially(months, newSaldo, movimientos);
+        this.createMetasSequentially(months, newSaldo, movimientos, totalToAdd, addedCount);
       }
     });
   }

@@ -1,6 +1,7 @@
 .container {
   padding: 2rem;
-  max-width: 1400px;
+  max-width: 1800px;
+  width: 95%;
   margin: 0 auto;
 }
 
@@ -38,7 +39,7 @@ mat-card-title {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: 1.6fr 1fr;
   gap: 2rem;
   align-items: start;
 }
@@ -242,4 +243,91 @@ table {
 .badge-success {
   background: rgba(34, 197, 94, 0.2);
   color: var(--success-color);
+}
+
+/* Visualization Panel Styles */
+.visualization-panel {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-toggle {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chart-toggle mat-button-toggle {
+  color: var(--text-secondary);
+  border-left: 1px solid var(--border-color);
+}
+
+.chart-toggle mat-button-toggle:first-child {
+  border-left: none;
+}
+
+.chart-toggle .mat-button-toggle-checked {
+  background: var(--primary-color);
+  color: white;
+}
+
+.chart-container {
+  min-height: 350px;
+}
+
+.chart-wrapper {
+  width: 100%;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.radial-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.rendimiento-info {
+  text-align: center;
+}
+
+.rendimiento-info h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.rendimiento-info p {
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-toggle {
+    width: 100%;
+  }
+
+  .chart-toggle mat-button-toggle {
+    flex: 1;
+  }
 }
