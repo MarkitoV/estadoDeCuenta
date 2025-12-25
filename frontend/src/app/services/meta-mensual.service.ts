@@ -6,6 +6,7 @@ export interface MetaMensual {
   _id?: string;
   mes: string | Date;
   saldoMinimo: number;
+  saldoMes: number;
   nAbonos: number;
 }
 

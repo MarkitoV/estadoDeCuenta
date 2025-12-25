@@ -209,10 +209,17 @@ table {
   border: 1px solid var(--border-color);
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
 .section-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin: 0;
   color: var(--secondary-color);
   text-transform: uppercase;
   letter-spacing: 0.05em;

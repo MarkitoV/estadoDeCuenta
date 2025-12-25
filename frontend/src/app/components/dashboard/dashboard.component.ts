@@ -9,6 +9,7 @@ interface Meta {
   mesNum: number;
   anio: number;
   saldoMinimo: number;
+  saldoMes: number;
   numMovimientos: number;
 }
 import { MatCardModule } from '@angular/material/card';
@@ -42,7 +43,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['fecha', 'descripcion', 'debito', 'credito', 'saldo', 'acciones'];
 
   metas = new MatTableDataSource<Meta>([]);
-  metasColumns: string[] = ['mes', 'saldoMinimo', 'numMovimientos'];
+  metasColumns: string[] = ['mes', 'saldoMinimo', 'saldoMes', 'numMovimientos'];
 
   loading = true;
   error: string | null = null;
@@ -112,18 +113,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (metasBackend) => {
         const metasData: Meta[] = metasBackend.map(m => {
           const date = new Date(m.mes);
-          const count = movimientos.filter(mov => {
+          const monthMovs = movimientos.filter(mov => {
             const d = new Date(mov.fecha);
             return d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
-          }).length;
+          });
 
           return {
             mes: date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
             mesNum: date.getMonth(),
             anio: date.getFullYear(),
             saldoMinimo: m.saldoMinimo,
-            numMovimientos: count
+            saldoMes: m.saldoMes || 0,
+            numMovimientos: monthMovs.length
           };
+        }).sort((a, b) => {
+          const dateA = new Date(a.anio, a.mesNum).getTime();
+          const dateB = new Date(b.anio, b.mesNum).getTime();
+          return dateB - dateA;
         });
         this.metas.data = metasData;
       },
@@ -153,18 +159,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     ];
 
     const metasData: Meta[] = meses.map(m => {
-      const count = movimientos.filter(mov => {
+      const monthMovs = movimientos.filter(mov => {
         const d = new Date(mov.fecha);
         return d.getMonth() === m.mes && d.getFullYear() === m.anio;
-      }).length;
+      });
+
+      // Find first movement of the month for fallback
+      const firstMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
+        return new Date(curr.fecha).getTime() < new Date(prev.fecha).getTime() ? curr : prev;
+      }) : null;
 
       return {
         mes: m.nombre,
         mesNum: m.mes,
         anio: m.anio,
         saldoMinimo: m.saldo,
-        numMovimientos: count
+        saldoMes: firstMov ? (firstMov.saldo || 0) : 0,
+        numMovimientos: monthMovs.length
       };
+    }).sort((a, b) => {
+      const dateA = new Date(a.anio, a.mesNum).getTime();
+      const dateB = new Date(b.anio, b.mesNum).getTime();
+      return dateB - dateA;
     });
 
     this.metas.data = metasData;
@@ -228,6 +244,108 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   cancelDelete(): void {
     this.closeModal();
+  }
+
+  fillMetas(): void {
+    this.metaMensualService.getMetas().subscribe({
+      next: (existingMetas) => {
+        this.movimientoService.movimientos$.subscribe((movimientos) => {
+          if (movimientos.length === 0) return;
+
+          // 1. Determine starting point
+          let startDate: Date;
+          let currentSaldoMinimo = 0;
+
+          if (existingMetas.length === 0) {
+            // Start from March 2025
+            startDate = new Date(2025, 2, 1); // March is 2
+          } else {
+            // Find the last registered month
+            const lastMeta = existingMetas.reduce((prev, current) => {
+              return new Date(current.mes).getTime() > new Date(prev.mes).getTime() ? current : prev;
+            });
+            const lastDate = new Date(lastMeta.mes);
+            startDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 1);
+            currentSaldoMinimo = lastMeta.saldoMinimo;
+          }
+
+          // Determine end point: the month of the last movement
+          const lastMovDate = movimientos.reduce((prev, current) => {
+            return new Date(current.fecha).getTime() > new Date(prev.fecha).getTime() ? current : prev;
+          }).fecha;
+          const endDate = new Date(new Date(lastMovDate).getFullYear(), new Date(lastMovDate).getMonth(), 1);
+
+          // 2. Process months from startDate to endDate
+          const monthsToProcess: Date[] = [];
+          let tempDate = new Date(startDate);
+          while (tempDate <= endDate) {
+            monthsToProcess.push(new Date(tempDate));
+            tempDate.setMonth(tempDate.getMonth() + 1);
+          }
+
+          if (monthsToProcess.length === 0) {
+            console.log('No new months to process');
+            return;
+          }
+
+          // 3. Sequential creation
+          this.createMetasSequentially(monthsToProcess, currentSaldoMinimo, movimientos);
+        });
+      },
+      error: (err) => console.error('Error fetching existing metas:', err)
+    });
+  }
+
+  private createMetasSequentially(months: Date[], lastSaldo: number, movimientos: any[]): void {
+    if (months.length === 0) {
+      this.loadMovimientos();
+      return;
+    }
+
+    const currentMonth = months.shift()!;
+
+    // Calculate Saldo Mínimo
+    let newSaldo = lastSaldo;
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+
+    if (year === 2025 && month === 2) {
+      newSaldo = 0;
+    } else if (year === 2025 && month >= 3 && month <= 5) {
+      newSaldo += 400;
+    } else if (year > 2025 || (year === 2025 && month >= 6)) {
+      newSaldo += 600;
+    }
+
+    // Count and find last movement
+    const monthMovs = movimientos.filter(mov => {
+      const d = new Date(mov.fecha);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    const firstMov = monthMovs.length > 0 ? monthMovs.reduce((prev, curr) => {
+      // Use createdAt for better precision if available, otherwise fecha
+      const timePrev = prev.createdAt ? new Date(prev.createdAt).getTime() : new Date(prev.fecha).getTime();
+      const timeCurr = curr.createdAt ? new Date(curr.createdAt).getTime() : new Date(curr.fecha).getTime();
+      return timeCurr < timePrev ? curr : prev;
+    }) : null;
+
+    const newMeta: MetaMensual = {
+      mes: currentMonth,
+      saldoMinimo: newSaldo,
+      saldoMes: firstMov ? (firstMov.saldo || 0) : 0,
+      nAbonos: monthMovs.length
+    };
+
+    this.metaMensualService.createMeta(newMeta).subscribe({
+      next: () => {
+        this.createMetasSequentially(months, newSaldo, movimientos);
+      },
+      error: (err) => {
+        console.error('Error creating meta:', err);
+        this.createMetasSequentially(months, newSaldo, movimientos);
+      }
+    });
   }
 
   private closeModal(): void {
