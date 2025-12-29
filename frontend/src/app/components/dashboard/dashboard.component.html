@@ -1,30 +1,8 @@
 <div class="container">
-  <mat-card class="dashboard-card fade-in">
-    <mat-card-header>
-      <mat-card-title>Movimientos Recientes</mat-card-title>
-      <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Nuevo Movimiento
-      </button>
-    </mat-card-header>
-
+  <!-- Visualization Card -->
+  <mat-card class="dashboard-card visualization-card fade-in" *ngIf="!loading && !error">
     <mat-card-content>
-      <!-- Loading State -->
-      <div *ngIf="loading" class="loading-state">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando movimientos...</p>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="error && !loading" class="error-state">
-        <mat-icon color="warn" class="large-icon">error_outline</mat-icon>
-        <p>{{ error }}</p>
-        <button mat-raised-button color="primary" (click)="loadMovimientos()">Reintentar</button>
-      </div>
-
-      <!-- Visualization Panel -->
-      <div *ngIf="!loading && !error" class="visualization-panel fade-in">
+      <div class="visualization-panel">
         <div class="panel-header">
           <h3 class="section-title">Visualización de Metas</h3>
           <mat-button-toggle-group [value]="activeChart" appearance="standard" class="chart-toggle">
@@ -68,11 +46,63 @@
           </div>
         </div>
       </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="dashboard-card fade-in">
+    <mat-card-header>
+      <mat-card-title>Movimientos Recientes</mat-card-title>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Nuevo Movimiento
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando movimientos...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-state">
+        <mat-icon color="warn" class="large-icon">error_outline</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadMovimientos()">Reintentar</button>
+      </div>
 
       <!-- Dashboard Grid -->
       <div *ngIf="!loading && !error" class="dashboard-grid">
         <!-- Movements Table -->
         <div class="table-container movements-section">
+          <div class="filters-container">
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Buscar descripción</mat-label>
+              <input matInput [(ngModel)]="filterValues.descripcion" (keyup)="applyFilter()"
+                placeholder="Ej. QR, ATM...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field date-range">
+              <mat-label>Rango de fechas</mat-label>
+              <mat-date-range-input [rangePicker]="picker">
+                <input matStartDate [(ngModel)]="filterValues.fechaInicio" (dateChange)="applyFilter()"
+                  placeholder="Inicio">
+                <input matEndDate [(ngModel)]="filterValues.fechaFin" (dateChange)="applyFilter()" placeholder="Fin">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+
+            <button mat-button color="warn" (click)="clearFilters()"
+              *ngIf="filterValues.descripcion || filterValues.fechaInicio || filterValues.fechaFin">
+              <mat-icon>filter_alt_off</mat-icon>
+              Limpiar
+            </button>
+          </div>
+
           <table mat-table [dataSource]="movimientos" class="mat-elevation-z0">
             <!-- Fecha Column -->
             <ng-container matColumnDef="fecha">

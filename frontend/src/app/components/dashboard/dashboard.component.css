@@ -246,12 +246,12 @@ table {
 }
 
 /* Visualization Panel Styles */
-.visualization-panel {
-  background: rgba(15, 23, 42, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color);
+.visualization-card {
   margin-bottom: 2rem;
+}
+
+.visualization-panel {
+  padding: 0.5rem;
 }
 
 .panel-header {
@@ -329,5 +329,46 @@ table {
 
   .chart-toggle mat-button-toggle {
     flex: 1;
+  }
+}
+
+/* Filters Styles */
+.filters-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-field.date-range {
+  flex: 1.5;
+  min-width: 280px;
+}
+
+.filters-container button {
+  height: 56px;
+  margin-bottom: 22px;
+  /* Align with form fields which have hints/errors space */
+}
+
+@media (max-width: 600px) {
+  .filter-field {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filters-container button {
+    width: 100%;
+    margin-bottom: 0;
   }
 }

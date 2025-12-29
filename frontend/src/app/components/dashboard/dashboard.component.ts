@@ -23,6 +23,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MovimientoFormComponent } from '../movimiento-form/movimiento-form.component';
 import { MetaMensualService, MetaMensual } from '../../services/meta-mensual.service';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import {
   NgApexchartsModule,
   ApexAxisChartSeries,
@@ -71,7 +76,12 @@ export type ChartOptions = {
     MatSnackBarModule,
     NgApexchartsModule,
     MatButtonToggleModule,
-    FormsModule
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -88,6 +98,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   @ViewChild('movimientosPaginator') movimientosPaginator!: MatPaginator;
   @ViewChild('metasPaginator') metasPaginator!: MatPaginator;
+
+  // Filter properties
+  filterValues = {
+    descripcion: '',
+    fechaInicio: null as Date | null,
+    fechaFin: null as Date | null
+  };
+
+
 
   activeChart: 'comparativa' | 'actividad' | 'rendimiento' | null = null;
 
@@ -127,6 +146,50 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.movimientos.paginator = this.movimientosPaginator;
     this.metas.paginator = this.metasPaginator;
+    this.setupFilterPredicate();
+  }
+
+  setupFilterPredicate() {
+    this.movimientos.filterPredicate = (data: Movimiento, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+
+      // Description filter
+      const matchesDescripcion = data.descripcion.toLowerCase().includes(searchTerms.descripcion.toLowerCase());
+
+      // Date range filter
+      const movDate = new Date(data.fecha);
+      movDate.setHours(0, 0, 0, 0);
+
+      let matchesDateRange = true;
+      if (searchTerms.fechaInicio) {
+        const startDate = new Date(searchTerms.fechaInicio);
+        startDate.setHours(0, 0, 0, 0);
+        matchesDateRange = matchesDateRange && movDate >= startDate;
+      }
+      if (searchTerms.fechaFin) {
+        const endDate = new Date(searchTerms.fechaFin);
+        endDate.setHours(0, 0, 0, 0);
+        matchesDateRange = matchesDateRange && movDate <= endDate;
+      }
+
+      return matchesDescripcion && matchesDateRange;
+    };
+  }
+
+  applyFilter() {
+    this.movimientos.filter = JSON.stringify(this.filterValues);
+    if (this.movimientos.paginator) {
+      this.movimientos.paginator.firstPage();
+    }
+  }
+
+  clearFilters() {
+    this.filterValues = {
+      descripcion: '',
+      fechaInicio: null,
+      fechaFin: null
+    };
+    this.applyFilter();
   }
 
   loadMovimientos(): void {
